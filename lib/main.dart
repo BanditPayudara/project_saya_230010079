@@ -21,141 +21,186 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final TextEditingController nameController =
+      TextEditingController();
+
+  final TextEditingController phoneController =
+      TextEditingController();
+
+  List<Map<String, String>> contacts = [
+    {
+      'name': 'Andi Saputra',
+      'phone': '08123456789',
+    },
+    {
+      'name': 'Budi Santoso',
+      'phone': '08234567890',
+    },
+    {
+      'name': 'Siti Aminah',
+      'phone': '08345678901',
+    },
+  ];
+
+  void addContact() {
+    String name = nameController.text.trim();
+    String phone = phoneController.text.trim();
+
+    if (name.isEmpty || phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Nama dan Nomor HP wajib diisi',
+          ),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      contacts.add({
+        'name': name,
+        'phone': phone,
+      });
+    });
+
+    nameController.clear();
+    phoneController.clear();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Kontak berhasil ditambahkan',
+        ),
+      ),
+    );
+  }
+
+  void deleteContact(int index) {
+    setState(() {
+      contacts.removeAt(index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Kontak App"),
+        title: const Text('Kontak App'),
         centerTitle: true,
-        elevation: 0,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            /// ===== INPUT SECTION =====
-            const Text(
-              "Tambah Kontak",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            /// INPUT NAMA
+            TextField(
+              controller: nameController,
+              decoration: InputDecoration(
+                hintText: 'Nama Kontak',
+                prefixIcon: const Icon(Icons.person),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
             ),
 
             const SizedBox(height: 12),
 
-            _buildTextField("Nama Kontak", Icons.person),
-
-            const SizedBox(height: 12),
-
-            _buildTextField("Nomor HP", Icons.phone),
+            /// INPUT NOMOR
+            TextField(
+              controller: phoneController,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                hintText: 'Nomor HP',
+                prefixIcon: const Icon(Icons.phone),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius:
+                      BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
 
             const SizedBox(height: 16),
 
+            /// BUTTON
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                onPressed: addContact,
+                child: const Text(
+                  'Tambah Kontak',
                 ),
-                child: const Text("Tambah Kontak"),
               ),
             ),
 
             const SizedBox(height: 24),
 
-            /// ===== LIST SECTION =====
-            const Text(
-              "Daftar Kontak",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Daftar Kontak',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
 
             const SizedBox(height: 12),
 
+            /// LIST
             Expanded(
-              child: ListView(
-                children: const [
-                  ContactCard(
-                    name: "Andi Saputra",
-                    phone: "08123456789",
-                  ),
-                  ContactCard(
-                    name: "Budi Santoso",
-                    phone: "08234567890",
-                  ),
-                  ContactCard(
-                    name: "Siti Aminah",
-                    phone: "08345678901",
-                  ),
-                ],
+              child: ListView.builder(
+                itemCount: contacts.length,
+                itemBuilder: (context, index) {
+                  final contact = contacts[index];
+
+                  return Card(
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        child: Text(
+                          contact['name']![0],
+                        ),
+                      ),
+                      title: Text(
+                        contact['name']!,
+                      ),
+                      subtitle: Text(
+                        contact['phone']!,
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Colors.red,
+                        ),
+                        onPressed: () {
+                          deleteContact(index);
+                        },
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  /// Widget reusable TextField
-  Widget _buildTextField(String hint, IconData icon) {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: Icon(icon),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-}
-
-/// ===== CARD UNTUK LIST =====
-class ContactCard extends StatelessWidget {
-  final String name;
-  final String phone;
-
-  const ContactCard({
-    super.key,
-    required this.name,
-    required this.phone,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      elevation: 2,
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.indigo,
-          child: Text(
-            name[0],
-            style: const TextStyle(color: Colors.white),
-          ),
-        ),
-        title: Text(name),
-        subtitle: Text(phone),
-        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       ),
     );
   }
